@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Training Plan</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+      background: #0f172a;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 16px;
+    }
+
+    .card {
+      background: #111827;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    h1, h2 {
+      margin: 0 0 8px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      color: #93c5fd;
+    }
+
+    ul {
+      padding-left: 18px;
+      margin: 8px 0;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: #2563eb;
+      color: white;
+      font-size: 1rem;
+    }
+
+    button:active {
+      background: #1d4ed8;
+    }
+
+    .date {
+      text-align: center;
+      opacity: 0.8;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="date" id="date"></div>
+
+  <div class="card">
+    <h1 id="title"></h1>
+  </div>
+
+  <div class="card">
+    <h2>Workout</h2>
+    <ul id="workout"></ul>
+  </div>
+
+  <div class="card">
+    <h2>Run</h2>
+    <div id="run"></div>
+  </div>
+
+  <div class="nav">
+    <button onclick="changeDay(-1)">◀ Previous</button>
+    <button onclick="changeDay(1)">Next ▶</button>
+  </div>
+
+<script>
+/* ==========================
+   CONFIG
+========================== */
+
+// Change this to the day you want the plan to start
+const programStart = new Date("2026-01-01");
+
+// 6-day training week
+const weeklySplit = [
+  "Upper Push",
+  "Lower Body",
+  "Upper Pull",
+  "Shoulders & Arms",
+  "Easy Run",
+  "Long Run",
+  "Rest"
+];
+
+// Base running distances (week 1)
+const runningBase = {
+  easy: 5,
+  long: 10
+};
+
+/* ==========================
+   WORKOUT DEFINITIONS
+========================== */
+
+const workouts = {
+  "Upper Push": [
+    "Bench Press – 4×5–8",
+    "DB / Landmine Press – 3×8–10",
+    "Incline DB Press – 3×8–12",
+    "Lateral Raises – 4×12–15",
+    "Close-grip Bench / Push-ups – 3×8–12"
+  ],
+  "Lower Body": [
+    "Back Squat – 4×5–8",
+    "Romanian Deadlift – 3×6–10",
+    "Bulgarian Split Squats – 3×8–12 / leg",
+    "Standing Calf Raises – 4×10–15",
+    "KB Swings – 2×20"
+  ],
+  "Upper Pull": [
+    "Pull-ups – 4×6–10",
+    "Chest-supported Row – 3×8–12",
+    "Single-arm DB Row – 3×10–12",
+    "Rear Delt Raises / Face Pulls – 4×12–15",
+    "Hammer Curls – 3×10–12"
+  ],
+  "Shoulders & Arms": [
+    "Seated DB Shoulder Press – 4×8–10",
+    "Lateral Raises – 4×12–20",
+    "Rear Delt Raises – 4×12–15",
+    "Barbell Curl – 3×8–10",
+    "Incline DB Curl – 3×10–12",
+    "Skull Crushers – 3×10–12",
+    "External Rotations – 2×15"
+  ],
+  "Easy Run": [
+    "Core + mobility (optional)"
+  ],
+  "Long Run": [
+    "Stretching + light mobility"
+  ],
+  "Rest": [
+    "Complete rest or light walk"
+  ]
+};
+
+/* ==========================
+   DATE HANDLING
+========================== */
+
+let dayOffset = 0;
+
+function changeDay(delta) {
+  dayOffset += delta;
+  render();
+}
+
+function render() {
+  const today = new Date();
+  const currentDate = new Date(today);
+  currentDate.setDate(today.getDate() + dayOffset);
+
+  const daysSinceStart = Math.floor(
+    (currentDate - programStart) / (1000 * 60 * 60 * 24)
+  );
+
+  const week = Math.max(0, Math.floor(daysSinceStart / 7));
+  const dayIndex = ((daysSinceStart % 7) + 7) % 7;
+  const dayType = weeklySplit[dayIndex];
+
+  document.getElementById("date").textContent =
+    currentDate.toDateString();
+
+  document.getElementById("title").textContent = dayType;
+
+  // Workout list
+  const workoutEl = document.getElementById("workout");
+  workoutEl.innerHTML = "";
+  workouts[dayType].forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    workoutEl.appendChild(li);
+  });
+
+  // Running logic (6 month linear progression)
+  let runText = "No run today";
+
+  if (dayType === "Upper Push" || dayType === "Easy Run") {
+    const km = (runningBase.easy + week * 0.2).toFixed(1);
+    runText = `Easy run – ${km} km (conversational pace)`;
+  }
+
+  if (dayType === "Upper Pull") {
+    runText = "Quality run – Intervals or Tempo (rotate weekly)";
+  }
+
+  if (dayType === "Long Run") {
+    const km = (runningBase.long + week * 0.3).toFixed(1);
+    runText = `Long run – ${km} km (easy aerobic pace)`;
+  }
+
+  document.getElementById("run").textContent = runText;
+}
+
+render();
+</script>
+</body>
+</html>
